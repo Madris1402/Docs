@@ -2,11 +2,6 @@
 tags:
   - MuleApp
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Esta MuleApp tiene como propósito usar *Batch Jobs* y reportarlos a *New Relic* para su análisis.
 
 ### Batch Jobs

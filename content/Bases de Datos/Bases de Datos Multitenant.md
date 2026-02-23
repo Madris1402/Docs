@@ -2,11 +2,6 @@
 tags:
   - DB
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Las Bases de Datos ***Multitenant*** se caracterizan por modular el sistema en una base central y bases individuales que dependen de la central.
 
 ### Contained Data Base (CDB)

@@ -2,11 +2,6 @@
 tags:
   - Apache
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Permite almacenar y procesar cantidades masivas de información dividiendo el trabajo en múltiples computadoras, ideal para tareas pesadas y programadas (procesamiento por lotes o _batch_). Su uso principal es en *Big Data*.
 
 En lugar de tener una sola supercomputadora para el procesamiento, reunimos cientos de computadoras normales y les repartimos la carga de trabajo (a esto se le llama *Cluster*).
@@ -31,7 +26,7 @@ HDFS no corta un archivo de 1TB en pedazos gigantes de 250GB, sino en "bloques" 
 | `datos_financieros.csv` |       `blk_0003`       |    Nodo_C (IP: 192.168.1.12)    |
 |           ...           |          ...           |               ...               |
 | `datos_financieros.csv` |       `blk_8192`       |    Nodo_D (IP: 192.168.1.13)    |
-Cuando se quiere leer el archivo, se le pide al *NameNode* y él devuelve este mapa para que vayas directamente a los *DataNodes* a buscar tus bloques.
+- Cuando se quiere leer el archivo, se le pide al *NameNode* y él devuelve este mapa para que vayas directamente a los *DataNodes* a buscar tus bloques.
 
 Ahora, pensemos en la vida real. Imagina que hay un fallo eléctrico o el disco duro del **Nodo_B** se quema repentinamente. Si el bloque `blk_0002` solo estaba guardado en esa computadora, el archivo de 1TB quedaría corrupto e inservible.
 

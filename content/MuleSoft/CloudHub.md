@@ -2,11 +2,6 @@
 tags:
   - MuleSoft
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Es una ***iPaaS*** (*Integrated Platform as a Service*) totalmente gestionada por [[MuleSoft]]. En este se despliegan *MuleApps*.
 
 ### Réplicas

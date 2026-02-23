@@ -2,11 +2,6 @@
 tags:
   - API
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Es una filosofía de integración moderna que utiliza [[APIs]] reciclables para conectar datos y aplicaciones, está compuesto de 3 capas
 
 ### Capas de API-Led

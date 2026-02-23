@@ -2,11 +2,6 @@
 tags:
   - API
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> ```
-
----
 ### Application Programing Interface (API)
 Las ***APIs*** son un conjunto de reglas estructuradas que permite a dos aplicaciones comunicarse entre sí. Son un intermediario que lleva los mensajes de una parte a otra, permitiendo que programas construidos con tecnologías diferentes se puedan entender sin problemas.
 

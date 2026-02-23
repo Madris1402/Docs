@@ -2,11 +2,6 @@
 tags:
   - NewRelic
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Es una plataforma de ***Observabilidad*** que nos permite entender el por qué sucede algo.
 
 ### Elementos Principales

@@ -2,11 +2,6 @@
 tags:
   - Docker
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 ### Requisitos
 #### Instalador de GoldenGate Classic
 Para crear este contenedor de [[Docker]] es necesario descargar *Oracle Golden Gate 19* desde [Oracle Software Delivery Cloud](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) (Para ingresar al portal se requiere de una cuenta de Oracle, si no la tienes, crea una)

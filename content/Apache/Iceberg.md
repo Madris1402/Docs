@@ -2,11 +2,6 @@
 tags:
   - Apache
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Apache Iceberg es un **formato de tabla**. Se coloca justo encima de sistemas de almacenamiento masivo (como [[Hadoop]]) para darle estructura y agilidad, haciéndolo funcionar casi como una base de datos tradicional.
 
 Si quisieramos editar registros específicos de un archivo grande (100GB) que se encuentra en *Hadoop*, tendríamos que leer completamente el archivo, alterarlo y volver a escribir los 100GB del archivo. Lo cual es muy lento y consume demasiados recursos.

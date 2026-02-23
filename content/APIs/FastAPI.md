@@ -2,12 +2,6 @@
 tags:
   - API
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> 
-> ```
-
----
 Es un framework moderno para construir [[APIs]] con Python basado en ***Type Hints*** estándar de Python. Haciéndolo veloz, compatible con los estándares ***OpenAPI*** (Swagger) y JSON Schema.
 
 Utiliza tipado estático para validar los datos automáticamente reduciendo los errores en tiempo de ejecución.

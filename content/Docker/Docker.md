@@ -2,11 +2,6 @@
 tags:
   - Docker
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Docker es una plataforma de software que te permite crear, probar e implementar aplicaciones rápidamente. Docker empaqueta el software en unidades estandarizadas llamadas **contenedores**.
 
 Docker toma tu aplicación (Java, Python, MuleSoft, etc.) y la mete en una "caja" (el contenedor) junto con **todo** lo que necesita para funcionar:

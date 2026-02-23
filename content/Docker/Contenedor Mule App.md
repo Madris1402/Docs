@@ -2,11 +2,6 @@
 tags:
   - Docker
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 ### La idea
 Desplegar un contenedor [[Docker]] con una MuleApp para facilitar su distribución y mantenimiento.
 

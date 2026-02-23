@@ -2,11 +2,6 @@
 tags:
   - DB
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> ```
-
----
 ### Función
 En Oracle DB, los *Redo Logs* se encargan de recuperación de datos en caso de un error. Almacenan todos los cambios realizados a la base de datos en tiempo real, asegurando la reconstrucción de transacciones y su aplicación a los archivos de datos, garantizando la integridad de los datos.
 

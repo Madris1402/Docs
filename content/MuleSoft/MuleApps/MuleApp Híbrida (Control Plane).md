@@ -2,11 +2,6 @@
 tags:
   - MuleApp
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Para realizar este proyecto, tomaremos la *MuleApp* del *Laboratorio 06* y la volveremos un entorno híbrido.
 ### Requisitos
 1. ***Tener Instalado Java 17*** *(Mule para Control Plane Exige esta versión)*

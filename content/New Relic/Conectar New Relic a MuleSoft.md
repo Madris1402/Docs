@@ -2,11 +2,6 @@
 tags:
   - NewRelic
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 ### Pasos para la Integración
 Para integrar [[New Relic]] con [[MuleSoft]] entramos al [dashboard](https://one.newrelic.com/marketplace) de New Relic y buscamos la integración con *Mule ESB*
 

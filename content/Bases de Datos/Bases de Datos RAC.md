@@ -2,12 +2,6 @@
 tags:
   - DB
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> ```
-> 
-
----
 Las bases de datos RAC cuentan con múltiples instancias ***clusterizadas*** de sistemas de gestión de bases de datos que están conectadas al un sistema de ***almacenamiento compartido***. Permitiendo así <mark style="background:rgba(136, 49, 204, 0.2)">alta disponibiliad y escalabilidad.</mark>
 
 A diferencia de una base de datos tradicional que se satura cuan

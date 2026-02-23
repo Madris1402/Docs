@@ -2,11 +2,6 @@
 tags:
   - MuleSoft
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 ### Introducción
 Una Mule App se compone de **Flujos**. Un flujo tiene tres partes:
 

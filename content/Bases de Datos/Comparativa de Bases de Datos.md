@@ -2,11 +2,6 @@
 tags:
   - DB
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> ```
-
----
 ### Cuadro Comparativo
 
 |      **Característica**      | **Single Instance (Tradicional)**                              | **[[Bases de Datos RAC\|RAC (Real Application Clusters)]]** | **[[Bases de Datos Multitenant\|Multitenant (CDB/PDB)]]**              |

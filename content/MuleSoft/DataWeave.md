@@ -2,11 +2,6 @@
 tags:
   - MuleSoft
 ---
-> [!abstract] Índice
-> ```table-of-contents
-> ```
-
----
 ### Su Función
 DataWeave es un traductor de datos entre sistemas, toma los datos de entrada (***Input***), los reordena, les cambia el formato y entrega exactamente lo que el otro sistema necesita (***Output***).
 

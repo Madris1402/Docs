@@ -2,11 +2,6 @@
 tags:
   - Apache
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 Kafka está diseñado para manejar flujos continuos de datos en el instante en que ocurren (procesamiento _Streaming_).
 
 ### Situación de Ejemplo

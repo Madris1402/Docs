@@ -2,11 +2,6 @@
 tags:
   - MuleSoft
 ---
-> [!abstract] Índice
-> ```table-of-contents 
-> ```
-
----
 MuleSoft es una empresa (propiedad de Salesforce) que ofrece una plataforma de integración llamada **Anypoint Platform**. Tiene la capacidad de conectar cualquier sistema, aplicación o fuente de datos.
 
 ### Conceptos Básicos
