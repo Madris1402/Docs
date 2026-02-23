@@ -6,12 +6,12 @@ Hola, aquí encontrarás documentación de todo tipo, desde herramientas, peque�
 
 Software que se utiliza:
 
-[AnypointStudio](https://www.mulesoft.com/lp/dl/anypoint-mule-studio) IDE para desarrollo de *MuleApps* (APIs).
-[Docker](https://www.docker.com/) Aplicaciones Contenerizadas.
-[Draw.io](https://www.drawio.com/) Software de diseño de diagramas.
-[MobaXterm](https://mobaxterm.mobatek.net/) Terminal Alternativa, uso para *SSH*.
-[Postman](https://www.postman.com/) Entorno de Pruebas para APIs
-[Visual Studio Code](https://code.visualstudio.com/) Editor de Código.
+- [AnypointStudio](https://www.mulesoft.com/lp/dl/anypoint-mule-studio) IDE para desarrollo de *MuleApps* (APIs).
+- [Docker](https://www.docker.com/) Aplicaciones Contenerizadas.
+- [Draw.io](https://www.drawio.com/) Software de diseño de diagramas.
+- [MobaXterm](https://mobaxterm.mobatek.net/) Terminal Alternativa, uso para *SSH*.
+- [Postman](https://www.postman.com/) Entorno de Pruebas para APIs
+- [Visual Studio Code](https://code.visualstudio.com/) Editor de Código.
 
 ---
 Instalar Software con comandos de terminal para Windows:
