@@ -207,7 +207,7 @@ En el dashboard de New Relic encontraremos los siguientes gráficos:
 
 - **Web Transactions Time**: Es una agrupación de toda la actividad que recibe el servicio hasta las respuestas que este envía.
 	- ***¿Qué muestra este gráfico?***
-		La vista por defecto muestra el promedio de los valores. <mark style="background:rgba(74, 82, 199, 0.2)">La línea Azul Oscura de tiempo de respuesta es el promedio total</mark>. <mark style="background:rgba(5, 117, 197, 0.2)">La línea azul clara muestra las transacciones de aplicación</mark>, <mark style="background:rgba(240, 200, 0, 0.2)">la amarilla es para transacciones de bases de datos</mark> y<mark style="background:rgba(3, 135, 102, 0.2)"> la verde para servicios externos (APIs o Microservicios adicionales)</mark>.
+		La vista por defecto muestra el promedio de los valores. <mark style="background:#40a9ff"><font color="#ffffff">La línea Azul Oscura de tiempo de respuesta es el promedio total</font></mark>. , <mark style="background:#d4b106">la amarilla es para transacciones de bases de datos</mark> y <mark style="background:#affad1">la verde para servicios externos (APIs o Microservicios adicionales)</mark>.
 - **Apdex Score**: Es un estándar de industria que mide la satisfacción de los usuarios según el tiempo de respuesta de la aplicación o servicio. Se representa de 0 a 1.
 	- ***¿Qué se considera buen puntaje ?***
 		Mientras el puntaje se aproxima a 1, mejor es el desempeño de la app. El valor por defecto de una experiencia satisfactoria es de 0.5 segundos por acción. pero se puede cambiar en los ajustes.

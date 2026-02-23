@@ -19,7 +19,7 @@ En Oracle DB, los *Redo Logs* se encargan de recuperación de datos en caso de u
 - **Log Switch**: Es el punto en el cual el *LGWR* deja de escribir en un *Redo Log Group* y empieza a escribir en otro. El *Log Switch* ocurre de forma automática cuando un grupo se llena. Pero puede ser forzado a modo manual usando el comando `ALTER SYSTEM SWITCH LOGFILE`.
 
 ### En Arquitectura Multitenant
-En la arquitectura [[Bases de Datos Multitenant|Oracle Multitenant]] <mark style="background:rgba(136, 49, 204, 0.2)">solo existe un conjunto de *Online Redo Log Files* en el nivel de la *CDB* que se comparte con todas las *PDBs* dentro de la *CDB*.</mark> Las *PDBs* no cuentan con *Online Redo Log Files* propios.
+En la arquitectura [[Bases de Datos Multitenant|Oracle Multitenant]] ==solo existe un conjunto de *Online Redo Log Files* en el nivel de la *CDB* que se comparte con todas las *PDBs* dentro de la *CDB*==. Las *PDBs* no cuentan con *Online Redo Log Files* propios.
 
 #### Conceptos Elementales
 

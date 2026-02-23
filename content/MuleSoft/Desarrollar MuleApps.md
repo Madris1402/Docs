@@ -142,7 +142,7 @@ db:
 	- Ve a **Global Elements** -> **Create** -> **Secure Configuration Properties**.
 	- Configúralo así:
 	    - **File:** `config.yaml`
-	    - **Key:** `${mule.key}` <-- <mark style="background:rgba(136, 49, 204, 0.2)">Aquí no pongas la llave real. Ponemos una variable </mark>(placeholder).
+	    - **Key:** `${mule.key}` <-- ==Aquí no pongas la llave real. Ponemos una variable (placeholder)==.
 	    - **Algorithm:** `Blowfish` (o el que usaste).
 	    - **Mode:** `CBC`.
 4. Referenciar en el código (La sintaxis cambia)
