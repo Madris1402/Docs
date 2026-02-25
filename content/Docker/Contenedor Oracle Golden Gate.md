@@ -25,11 +25,34 @@ docker network create --driver bridge ogg-net
 ```
 
 #### Contenedor DB
-Para generar la base de datos utilizaremos:
+Para generar la base de datos utilizaremos la versión enterprise:
+- Primero accederemos a [Oracle Container Registry](https://container-registry.oracle.com/ords/f?p=113:10:15004264854233) 
+	- Escogemos Databases y buscamos la edición Enterprise.
+	- Iniciamos sesión.
+	- Aceptamos las condiciones del servicio.
+	- Generamos un Token de Autenticación.
+	- Lo copiamos, guardamos y vamos a la terminal.
 ```powershell
-docker run -d  --name goldengate_odb --network ogg-net -p 1522:1521 -e ORACLE_PASSWORD=Oracle123  gvenzl/oracle-xe
+docker login container-registry.oracle.com
 ```
-- Este comando descarga la imagen de OracleXE para Docker, para evitar conflictos con puertos lo mapeamos al puerto `1522`. Y lo asignamos a la red que ya habíamos creado antes.
+- Tras ejecutar este comando nos pedirá nuestro correo y una contraseña, la contraseña es el token que copiamos antes.
+```powershell
+docker run -d --name goldengate_odb --network ogg-net -p 1523:1521 -e ORACLE_SID=orcl -e ORACLE_PDB=orclpdb1 -e ORACLE_PWD=Oracle123 -e ORACLE_EDITION=enterprise -v oracle_ee_data:/opt/oracle/oradata container-registry.oracle.com/database/enterprise:19.3.0.0
+```
+- Ya con la autorización realizada, ejecutamos este comando que descarga la imagen de Oracle Enterprise para Docker, para evitar conflictos con puertos lo mapeamos al puerto `1523`. Y lo asignamos a la red que ya habíamos creado antes.
+	- Este proceso tarda, para ver el avance entrar al log del contenedor: `docker logs -f goldengate_odb`.
+```powershell
+docker exec -it goldengate_odb sqlplus
+```
+- Iniciamos sesión con el usuario `system` y la contraseña `Oracle123`.
+```sql
+SELECT logins FROM v$instance;
+```
+- Verificamos que la instancia no esté restringida a conexiones externas.
+```sql
+ALTER SYSTEM DISABLE RESTRICTED SESSION;
+```
+- Desactivamos las restricción de conexiones.
 #### Contenedor GoldenGate
 > Para generar el contenedor necesitamos la siguiente estructura de archivos:
 ```
@@ -170,7 +193,7 @@ docker exec -it goldengate ggsci
 Una vez dentro del contenedor mandaremos llamar a la base de datos con el siguiente comando
 
 ```powershell
-dblogin userid system@goldengate_odb:1521 password Oracle123
+dblogin userid system@goldengate_odb:1521/orcl password Oracle123
 ```
 - Este comando manda a llamar al otro contenedor y al puerto interno del contenedor.
 

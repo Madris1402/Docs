@@ -6,19 +6,19 @@ tags:
 ### Tabla a Tabla
 Para configurar un entorno con replicaciones tabla a tabla en el [[Contenedor Oracle Golden Gate]] que generamos anteriormente primero necesitamos crear un usuario que tenga los permisos suficientes para acceder a [[Bases de Datos Multitenant#Pluggable Data Base (PDB)|PDBs]], recursos del sistema, esquemas de la Base de Datos, etc.
 
-1.  Preparación de la Base de Datos 19c
+#### Preparación de la Base de Datos 19c
 	Como empezamos con una base de datos vacía necesitamos preparar todo:
 ```powershell
 docker exec -it goldengate_odb bash
 ```
 - Nos conectamos al contenedor de la base de datos.
 ```bash
-sqlplus system as sysdba
+sqlplus / as sysdba
 ```
 - Entramos como *DBA* a SQL.
-	
-2. Habilitar la replicación a nivel motor
-	En 19c, la base de datos debe estar configurada para guardar el historial de transacciones y permitir a GoldenGate extraerlas:
+
+##### Habilitar la replicación a nivel motor
+En 19c, la base de datos debe estar configurada para guardar el historial de transacciones y permitir a GoldenGate extraerlas:
 	
 ```sql
 ALTER SYSTEM SET ENABLE_GOLDENGATE_REPLICATION=true SCOPE=BOTH;
@@ -46,20 +46,21 @@ ALTER DATABASE ADD SUPPLEMENTAL LOG DATA;
 ```
 - Este comando añade registros suplementarios. Cuando se realice un `UPDATE` o `DELETE`, se almacenarán las llaves primarias en los *Redo Logs* para que la reconstrucción de queries en el destino tenga el contexto completo.
 	
-3. Crear los Usuarios para GoldenGate
-	Como 19c usa contenedores, este usuario debe ser "común" (empezar con `c##`) y tener permisos en todos los contenedores.
+##### Crear los Usuarios para GoldenGate
+Como 19c usa contenedores, este usuario debe ser "común" (empezar con `c##`) y tener permisos en todos los contenedores.
+
 ```sql
-CREATE TABLESPACE goldengate DATAFILE '/opt/oracle/oradata/XE/goldengate01.dbf' SIZE 100M AUTOEXTEND ON;
+CREATE TABLESPACE goldengate DATAFILE '/opt/oracle/oradata/ORCL/goldengate01.dbf' SIZE 100M AUTOEXTEND ON;
 ```
 - Creamos el *tablespace*.
 	
 ```sql
-ALTER SESSION SET CONTAINER = XEPDB1;
+ALTER SESSION SET CONTAINER = ORCLPDB1;
 ```
 - Cambaimos a la PDB
 	
 ```sql
-CREATE TABLESPACE goldengate DATAFILE '/opt/oracle/oradata/XE/XEPDB1_goldengate01.dbf' SIZE 100M AUTOEXTEND ON;
+CREATE TABLESPACE goldengate DATAFILE '/opt/oracle/oradata/ORCL/ORCLPDB1_goldengate01.dbf' SIZE 100M AUTOEXTEND ON;
 ```
 - Volvemos a crear el tablespace ==Pero le cambiamos el nombre al archivo para evitar que sobreescriva el de CDB$ROOT==.
 	
@@ -94,9 +95,11 @@ EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE('c##ggadmin', 'apply', container
 ```
 - Este perfil da al usuario la capacidad de "inyectar" datos en tablas que no son suyas, evadiendo ciertos triggers (disparadores) que normalmente se activarían si un usuario común hiciera un `INSERT`. También le da permisos de bloquear tablas y deshabilitar constraints temporalmente si la replicación lo exige.
 	
-4. Importar `hr_schema` de *Oracle Samples*
-	Regresamos a la terminal de windows, ahora descargamos los [db-sample-schemas](https://github.com/oracle-samples/db-sample-schemas/archive/refs/heads/main.zip) del [GitHub de Oracle](https://github.com/oracle-samples/db-sample-schemas/).
-	Una vez descargado, lo copiaremos a docker
+##### Importar `hr_schema` de *Oracle Samples*
+Regresamos a la terminal de windows, ahora descargamos los [db-sample-schemas](https://github.com/oracle-samples/db-sample-schemas/archive/refs/heads/main.zip) del [GitHub de Oracle](https://github.com/oracle-samples/db-sample-schemas/).
+
+Una vez descargado, lo copiaremos a docker:
+
 ```powershell
 docker cp "C:\{Ruta compleata a la carpeta de Samples}\db-sample-schemas-main\human_resources" goldengate_odb:/tmp/
 ```
@@ -122,7 +125,7 @@ sqlplus / as sysdba
 -  Entramos como `sysdba`.
 	
 ```sql
-ALTER SESSION SET CONTAINER = XEPDB1;
+ALTER SESSION SET CONTAINER = ORCLPDB1;
 ```
 - Entramos a la PDB <mark style="background:#fdbfff">Importante hacer esto</mark>.
 	
@@ -135,6 +138,7 @@ ALTER SESSION SET CONTAINER = XEPDB1;
 	  `Enter a tablespace for HR [USERS]:` = `users`
 	  `Do you want to overwrite the schema, if it already exists? [YES|no]:`= `y`
 	- Ya que terminemos el esquema debería generarse.
+	- Volvemos a iniciar sesión como `sysdba` y cambiamos el contenedor al de la PDB.
 ```sql
 ALTER USER hr QUOTA UNLIMITED ON USERS;
 ```
@@ -144,5 +148,103 @@ ALTER USER hr QUOTA UNLIMITED ON USERS;
 CREATE TABLE hr.employees_clone AS SELECT * FROM hr.employees WHERE 1=2;
 ```
 -  Creamos la tabla clon idéntica a la original (Al usar `AS SELECT *`, la tabla clon nacerá con todos los registros actuales. Para que se copie vacía usamos `WHERE 1=2`) (Al usar una condición imposible los datos son omitidos, pero la estructura de la tabla es generada).
+#### Configurar GoldenGate
+Ahora configuraremos *GoldenGate*, para ello, entramos al contenedor:
+
+```powershell
+docker exec -it goldengate ggsci
+```
+- Entramos directo a la consola de `ggsci`.
 	
-5. Configurar Goldengate
+```Goldengate
+CREATE SUBDIRS
+```
+- Creamos la estructura de carpetas de GoldenGate.
+	
+```GoldenGate
+DBLOGIN USERID c##ggadmin@//goldengate_odb:1521/ORCL PASSWORD ggadmin123
+```
+- Iniciamos sesión con el usuario `ggadmin`.
+	
+```GoldenGate
+ADD SCHEMATRANDATA ORCLPDB1.hr
+```
+-  Habilitar el Monitoreo del Esquema (`SCHEMATRANDATA`)
+	  Antes de capturar, debemos decirle a GoldenGate explícitamente qué esquema vamos a vigilar y forzar a Oracle a que registre toda la información necesaria para ese esquema específico.
+##### Registrar y Crear el EXTRACT
+Ahora crearemos el proceso `EEMP`. Usaremos **Integrated Capture**. Esto significa que GoldenGate trabajará íntimamente con el motor de LogMiner de Oracle.
+```GoldenGate
+REGISTER EXTRACT EEMP DATABASE CONTAINER (ORCLPDB1)
+```
+- Registramos el *Extract*, esto generará un diccionario así que puede tardar un poco.
+```GoldenGate
+ADD EXTRACT EEMP, INTEGRATED TRANLOG, BEGIN NOW
+```
+- Creamos el proceso para que empiece a capturar las transacciones.
+```GoldenGate
+EDIT PARAMS EEMP
+```
+- Ahora editaremos los parámetros del *Extract*.
+	- Una vez dentro, editamos el archivo:
+```vim
+EXTRACT EEMP
+USERID c##ggadmin@//goldengate_odb:1521/ORCL PASSWORD ggadmin123
+EXTTRAIL ./dirdat/ex
+SOURCECATALOG ORCLPDB1
+TABLE hr.employees;
+```
+- Guardamos los cambios y salimos
+	
+```Goldengate
+ADD EXTTRAIL ./dirdat/ex, EXTRACT EEMP
+```
+- Añadimos el *Extract* a `EXTTRAIL`.
+	
+```GoldenGate
+EDIT PARAMS mgr
+```
+- Ahora editaremos los parámetros del Manager.
+	- Una vez dentro, especificamos el puerto como: `PORT 7089`.
+```GoldenGate
+START MGR
+```
+- Iniciamos el *Manager*.
+```GoldenGate
+START EXTRACT EEMP
+```
+- Iniciamos el extracto.
+```GoldenGate
+INFO ALL
+```
+- Nos aseguramos que el *Extract* esté inicializado.
+	- Si vemos que dice `RUNNING` todo está en orden.
+		- Para asegurarnos que está todo en orden podemos ingresar el comando `VIEW REPORT EMMP` (o el nombre del elemento del que queremos ver su reporte).
+		  
+```sql
+INSERT INTO hr.employees (
+    employee_id, first_name, last_name, email, phone_number,
+    hire_date, job_id, salary, commission_pct, manager_id, department_id
+) VALUES (
+    999, 'Juan', 'Perez', 'juanpe@mail.com', '5551234567',
+    SYSDATE, 'IT_PROG', 6000, NULL, 100, 60
+);
+COMMIT;
+```
+- Ahora creamos un registro en la Base, asegurando estar en `ORCLPDB1` dónde existe el esquema.
+	- Entramos al esquema con el usuario `HR`.
+	  `sqlplus HR/hr@//localhost:1521/ORCLPDB1`
+```sql
+UPDATE hr.employees SET salary = salary + 100 WHERE employee_id = 999;
+COMMIT;
+```
+- Actualizamos el registro
+```sql
+DELETE hr.employees WHERE employee_id = 999;
+COMMIT;
+```
+- Eliminamos el Registro
+	
+```GoldenGate
+STATS EEMP
+```
+- Regresamos a GoldenGate y vemos las estadísticas del *Extract*. Deberíamos ver el Insert, Update y Delete.
