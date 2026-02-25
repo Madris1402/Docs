@@ -148,6 +148,10 @@ ALTER USER hr QUOTA UNLIMITED ON USERS;
 CREATE TABLE hr.employees_clone AS SELECT * FROM hr.employees WHERE 1=2;
 ```
 -  Creamos la tabla clon idéntica a la original (Al usar `AS SELECT *`, la tabla clon nacerá con todos los registros actuales. Para que se copie vacía usamos `WHERE 1=2`) (Al usar una condición imposible los datos son omitidos, pero la estructura de la tabla es generada).
+```sql
+ALTER TABLE hr.employees_clone ADD CONSTRAINT pk_emp_clone PRIMARY KEY (employee_id);
+```
+- Especificamos la llave primaria a la tabla clon para que no haya problemas con las replicaciones.
 #### Configurar GoldenGate
 Ahora configuraremos *GoldenGate*, para ello, entramos al contenedor:
 
@@ -238,13 +242,67 @@ UPDATE hr.employees SET salary = salary + 100 WHERE employee_id = 999;
 COMMIT;
 ```
 - Actualizamos el registro
-```sql
-DELETE hr.employees WHERE employee_id = 999;
-COMMIT;
-```
-- Eliminamos el Registro
 	
 ```GoldenGate
 STATS EEMP
 ```
 - Regresamos a GoldenGate y vemos las estadísticas del *Extract*. Deberíamos ver el Insert, Update y Delete.
+
+### Crear y Configurar el REPLICAT
+A diferencia del Extract, que tuvo que conectarse a la raíz (`CDB$ROOT`) para leer los diarios globales del sistema, el Replicat es como un usuario normal pero súper rápido: necesita conectarse directamente a la PDB donde viven las tablas para poder inyectar los datos.
+
+```GoldenGate
+DBLOGIN USERID c##ggadmin@//goldengate_odb:1521/ORCLPDB1, PASSWORD ggadmin123
+```
+
+Posteriormente Crearemos una Tabla *Checkpoint* para indicar al Replicat en dónde se quedó si es que ocurre un reinicio o desconexión.
+
+```GoldenGate
+ADD CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
+```
+
+Ya que hayamos configurado esto, creamos el *Replicat*
+
+```GoldenGate
+ADD REPLICAT REMP, EXTTRAIL ./dirdat/ex, CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
+```
+- Aquí especificamos la ruta para los *Trail Files* y la tabla *Checkpoint*.
+
+Después configuraremos los parámetros del *Replicat*.
+
+```GoldenGate
+EDIT PARAMS REMP
+```
+
+```vim
+REPLICAT REMP
+USERID c##ggadmin@//goldengate_odb:1521/ORCLPDB1, PASSWORD ggadmin123
+ASSUMETARGETDEFS
+MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
+```
+- `ASSUMETARGETDEFS`: Indica a *GoldenGate* que no compruebe si las columnas coinciden, porque nosotros sabemos que la tabla clon es estructuralmente idéntica a la original.
+- `MAP ... TARGET ...`: Es la ruta exacta. Todo lo que venga de `employees` va hacia `employees_clone`.
+
+Finalmente Iniciamos el Replicat y comprobamos que funcione:
+```GoldenGate
+START REPLICAT REMP
+```
+
+```GoldenGate
+INFO ALL
+```
+
+```GoldenGate
+VIEW REPORT REMP
+```
+
+Verificamos que los registros que creamos antes se vean reflejados
+```sql
+SELECT * FROM hr.employees_clone WHERE employee_id = 999;
+```
+
+```sql
+DELETE hr.employees WHERE employee_id = 999;
+COMMIT;
+```
+- Y eliminamos el registro de prueba en la tabla original. Debería eliminarse en la tabla clon.
