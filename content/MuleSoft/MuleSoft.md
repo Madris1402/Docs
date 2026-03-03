@@ -23,3 +23,17 @@ Para que esto funcione se utiliza la filosofía [[API-Led Connectivity]].
 - **DataWeave:** El lenguaje de programación propio de MuleSoft para transformar datos (ej. convertir un XML a JSON). Es extremadamente potente.
   
 - **Exchange:** Es como una "App Store" privada de tu empresa. Ahí publicas tus APIs para que otros desarrolladores las reutilicen en lugar de crear código nuevo.
+
+
+### Estructura de la Información
+#### Mule Event
+
+#### Mule Message
+
+#### Variables
+
+### Control de Flujo
+#### Scather-Gather
+
+#### Batch Job
+### Validación y Manejo de Errores

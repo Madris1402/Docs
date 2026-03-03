@@ -248,7 +248,7 @@ STATS EEMP
 ```
 - Regresamos a GoldenGate y vemos las estadísticas del *Extract*. Deberíamos ver el Insert, Update y Delete.
 
-### Crear y Configurar el REPLICAT
+##### Crear y Configurar el REPLICAT
 A diferencia del Extract, que tuvo que conectarse a la raíz (`CDB$ROOT`) para leer los diarios globales del sistema, el Replicat es como un usuario normal pero súper rápido: necesita conectarse directamente a la PDB donde viven las tablas para poder inyectar los datos.
 
 ```GoldenGate
@@ -264,7 +264,7 @@ ADD CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
 Ya que hayamos configurado esto, creamos el *Replicat*
 
 ```GoldenGate
-ADD REPLICAT REMP, EXTTRAIL ./dirdat/ex, CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
+ADD REPLICAT REMP, INTEGRATED, EXTTRAIL ./dirdat/ex, CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
 ```
 - Aquí especificamos la ruta para los *Trail Files* y la tabla *Checkpoint*.
 
@@ -306,3 +306,228 @@ DELETE hr.employees WHERE employee_id = 999;
 COMMIT;
 ```
 - Y eliminamos el registro de prueba en la tabla original. Debería eliminarse en la tabla clon.
+
+### Base a Base
+Si seguimos los pasos anteriores tendremos un Contenedor con el esquema *Human Resources* de *Oracle Samples*. Ahora crearemos un nuevo contenedor de Base de Datos:
+
+```powershell
+docker run -d --name goldengate_odb2 --network ogg-net -p 1522:1521 -e ORACLE_SID=orcl -e ORACLE_PDB=orclpdb1 -e ORACLE_PWD=Oracle123 -e ORACLE_EDITION=enterprise -v oracle_ee_data2:/opt/oracle/oradata container-registry.oracle.com/database/enterprise:19.3.0.0
+```
+
+Ya que generemos el contenedor configuraremos la base:
+1. Iniciamos el modo *[[#Habilitar la replicación a nivel motor|Archivelog]]*
+2. Creamos el usuario `c##gadmin` con los [[#Crear los Usuarios para GoldenGate|permisos]] para `apply`.
+3. [[#Importar `hr_schema` de *Oracle Samples*|Instalar el esquema]] `HR` y la tabla vacía `hr.employees_clone` configurada con la *Llave Primaria*.
+
+#### Configurar el Extract en la base Origen (`goldengate_odb`)
+
+Iniciamos sesión en la Base de Destino:
+```GoldenGate
+DBLOGIN USERID c##ggadmin@//goldengate_odb:1521/ORCL PASSWORD ggadmin123
+```
+
+Añadimos el Esquema `hr` al monitoreo:
+```GoldenGate
+ADD SCHEMATRANDATA ORCLPDB1.hr
+```
+
+Registramos el Extract:
+```GoldenGate
+REGISTER EXTRACT EEMP_ORG DATABASE CONTAINER (ORCLPDB1)
+```
+
+```GoldenGate
+ADD EXTRACT EEMP_ORG, INTEGRATED TRANLOG, BEGIN NOW
+```
+
+```GoldenGate
+ADD EXTTRAIL ./dirdat/origen/ex, EXTRACT EEMP_ORG
+```
+
+```GoldenGate
+EDIT PARAMS EEMP_ORG
+```
+
+```vim
+EXTRACT EEMP_ORG
+USERID c##ggadmin@//goldengate_odb:1521/ORCL PASSWORD ggadmin123
+EXTTRAIL ./dirdat/origen/ex
+SOURCECATALOG ORCLPDB1
+TABLE hr.employees;
+```
+
+```GoldenGate
+START EXTRACT EEMP_ORG
+```
+
+#### Generar el Replicat en la base destino (`goldengate_odb2`):
+
+Conectamos a la PDB del destino:
+```
+DBLOGIN USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
+```
+
+Creamos una Tabla Checkpoint:
+```
+ADD CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_chkpt
+```
+
+Registramos el Replicat
+```
+ADD REPLICAT REMP_DES, EXTTRAIL ./dirdat/origen/ex, CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_chkpt
+```
+
+```
+EDIT PARAMS REMP_DES
+```
+
+```vim
+REPLICAT REMP_DES
+USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
+ASSUMETARGETDEFS
+MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
+```
+
+```
+START REPLICAT REMP_DES
+```
+
+Finalmente agregamos registros en `goldengate_odb`
+
+```sql
+ALTER SESSION SET CONTAINER = ORCLPDB1;
+```
+
+```sql
+INSERT INTO hr.employees (
+    employee_id, first_name, last_name, email, phone_number,
+    hire_date, job_id, salary, commission_pct, manager_id, department_id
+) VALUES (
+    999, 'Juan', 'Perez', 'juanpe@mail.com', '5551234567',
+    SYSDATE, 'IT_PROG', 6000, NULL, 100, 60
+);
+COMMIT;
+```
+
+```sql
+UPDATE hr.employees SET salary = salary + 100 WHERE employee_id = 999;
+COMMIT;
+```
+
+Y los revisamos en `golengate_odb2`:
+
+```sql
+ALTER SESSION SET CONTAINER = ORCLPDB1;
+```
+
+```sql
+SELECT * FROM hr.employees_clone WHERE employee_id = 999;
+```
+
+Ya que terminemos, borramos el registro de pruebas de la base origen:
+```sql
+DELETE hr.employees WHERE employee_id = 999;
+COMMIT;
+```
+
+
+#### Añadir Control de Errores al replicat:
+
+```
+STOP REPLICAT REMP_DES
+EDIT PARAMS REMP_DES
+```
+
+```
+REPLICAT REMP_DES
+USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
+ASSUMETARGETDEFS
+
+DISCARDFILE ./dirrpt/remp_des.dsc, APPEND, MEGABYTES 10
+REPERROR (1, DISCARD)
+REPERROR (1403, DISCARD)
+
+MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
+```
+- `DISCARDFILE`: Definimos dónde guardar la basura (máximo 10MB y que no se sobreescriba)
+- Le decimos qué errores ignorar y tirar al archivo de descarte
+	- `Error 1: ORA-00001` (Unique constraint/Primary Key violation)
+	-  `Error 1403: ORA-01403` (No data found)
+
+```
+START REPLICAT REMP_DES
+INFO REPLICAT REMP_DES
+```
+
+Instertamos en `odb2` e insertamos:
+```SQL
+ALTER SESSION SET CONTAINER = ORCLPDB1;
+
+INSERT INTO hr.employees_clone (employee_id, first_name, last_name, email, hire_date, job_id) 
+VALUES (889, 'Intruso', 'Falso', 'FAKE', SYSDATE, 'IT_PROG');
+
+COMMIT;
+```
+
+Posteriormente entramos a `odb` e insertamos el mismo dato
+```sql
+INSERT INTO hr.employees (employee_id, first_name, last_name, email, hire_date, job_id) 
+VALUES (889, 'Intruso', 'Falso', 'FAKE', SYSDATE, 'IT_PROG');
+
+COMMIT;
+```
+
+Verificamos que el replicat siga vivo:
+```
+INFO REPLICAT REMP_DES
+```
+
+Y leemos el archivo directo desde el bash del contenedor (fuera de ggsci):
+```
+cat ./dirrpt/rephub.dsc
+```
+
+#### Añadir Tabla de Errores
+En `obd2`:
+
+```sql
+ALTER SESSION SET CONTAINER = ORCLPDB1;
+
+CREATE TABLE hr.employees_exceptions (
+    gg_error_msg VARCHAR2(4000),  -- Aquí guardaremos el ORA-XXXX
+    gg_op_type VARCHAR2(20),      -- ¿Fue un INSERT, UPDATE o DELETE?
+    gg_err_time TIMESTAMP         -- ¿A qué hora chocó?
+);
+```
+
+En GoldenGate, editamos el Archivo de parámetros de la Replicación:
+
+```Goldengate
+STOP REPLICAT REP_HUB
+EDIT PARAMS REP_HUB
+```
+
+```vim
+REPLICAT REMP_DES
+USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
+ASSUMETARGETDEFS
+
+MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
+-- Mapeo Solo para errores
+MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_exceptions,
+EXCEPTIONSONLY,
+COLMAP (
+    gg_error_msg = @GETENV ('LASTERR', 'DBERRMSG'),
+    gg_op_type = @GETENV ('LASTERR', 'OPTYPE'),
+    gg_err_time = @GETENV ('GGHEADER', 'COMMITTIMESTAMP')
+);
+```
+
+- `EXCEPTIONSONLY`: GoldenGate solo usará este mapa si el Mapeo 1 falla (falla la inyección).
+- `@GETENV`: Extrae variables del entorno. `DBERRMSG` captura el texto exacto del error de Oracle.
+
+```GoldenGate
+START REPLICAT REP_HUB
+```
+
+E insertamos datos nuevamente para generar una excepción como vimos antes.
