@@ -2,7 +2,6 @@
 tags:
   - GoldenGate
 ---
-
 ### Tabla a Tabla
 Para configurar un entorno con replicaciones tabla a tabla en el [[Contenedor Oracle Golden Gate]] que generamos anteriormente primero necesitamos crear un usuario que tenga los permisos suficientes para acceder a [[Bases de Datos Multitenant#Pluggable Data Base (PDB)|PDBs]], recursos del sistema, esquemas de la Base de Datos, etc.
 
@@ -512,6 +511,9 @@ REPLICAT REMP_DES
 USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
 ASSUMETARGETDEFS
 
+REPERROR (1, EXCEPTION)
+REPERROR (1403, EXCEPTION)
+
 MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
 -- Mapeo Solo para errores
 MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_exceptions,
@@ -531,3 +533,45 @@ START REPLICAT REP_HUB
 ```
 
 E insertamos datos nuevamente para generar una excepción como vimos antes.
+
+
+#### Integrar Macros
+Ahora integraremos una *[[Macros de GoldenGate|Macro]]* que se encargue del control de errores:
+
+Primero la generamos:
+```GoldenGate
+SH vi ./dirprm/error_handler.mac
+```
+
+Dentro de ella escribimos:
+```vim
+MACRO #error_handler
+PARAMS (#origen, #destino, #errores)
+BEGIN
+	MAP #origen, TARGET #destino;
+	
+	MAP #origen, TARGET #errores,
+	EXCEPTIONSONLY,
+	INSERTALLRECORDS,
+	COLMAP (
+		gg_error_msg = @GETENV ('LASTERR', 'DBERRMSG'),
+	    gg_op_type = @GETENV ('LASTERR', 'OPTYPE'),
+	    gg_err_time = @GETENV ('GGHEADER', 'COMMITTIMESTAMP')
+	);
+END;
+```
+- La guardamos y salimos
+
+Ahora editamos el *Replicat* `REMP_DES`:
+```
+REPLICAT REMP_DES
+USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
+ASSUMETARGETDEFS
+
+REPERROR (1, EXCEPTION)
+REPERROR (1403, EXCEPTION)
+
+INCLUDE ./dirprm/error_handler.mac
+
+#error_handler(ORCLPDB1.hr.employees,ORCLPDB1.hr.employees_clone,ORCLPDB1.hr.employees_exceptions);
+```
