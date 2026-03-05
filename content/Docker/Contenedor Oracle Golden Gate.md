@@ -15,8 +15,8 @@ Para crear este contenedor de [[Docker]] es necesario descargar *Oracle Golden G
 	`V983658-01(V983658-01.zip)	Oracle GoldenGate 19.1.0.0.4 for Oracle on Linux x86-64, 530.5 MB`
 6. Esto nos descargará un ejecutable, lo abrimos
 	- Nos pedirá la ubicación para descargar el archivo `.zip`, la especificamos dónde sea fácil de encontrar y hacemos click en *Next*.
-> [Tutorial Paso a Paso](obsidian://open?vault=SAIF&file=z.Adjuntos%2FDescargar%20OGG%20Classic.html)
-
+	[[Descargar OGG Classic|Tutorial paso a paso]]
+	
 ### Docker
 
 #### Docker Network

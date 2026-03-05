@@ -89,7 +89,7 @@ Ahora que el canal de comunicación está abierto, puedes desplegar aplicaciones
 4. En **Deployment Target**, cambia la opción de "CloudHub" a **"Hybrid"** o selecciona directamente el nombre de tu servidor (`testHybrid`).
 5. Sube tu archivo `.jar` (generado en Anypoint Studio) y dale a **Deploy**.
 	- Repetir  los pasos 2 a 5 con cada una de las APIs (`gsapi-system-api` y `gsapi-places-api`)
-> [Tutorial Paso a Paso](obsidian://open?vault=SAIF&file=z.Adjuntos%2FExportar%20MuleApp%20a%20JAR.html)
+> [[Exportar MuleApp a JAR|Tutorial Paso a Paso]]
 #### Resumen de la Arquitectura
 
 | Componente        | Ubicación          | Función                                                                   |
