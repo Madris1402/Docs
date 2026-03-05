@@ -325,12 +325,12 @@ Iniciamos sesión en la Base de Destino:
 DBLOGIN USERID c##ggadmin@//goldengate_odb:1521/ORCL PASSWORD ggadmin123
 ```
 
-Añadimos el Esquema `hr` al monitoreo:
+Añadimos el Esquema `hr` al monitoreo Este paso habilita el _Supplemental Logging_ a nivel de esquema, obligando a Oracle a registrar la información de las llaves primarias en los logs:
 ```GoldenGate
 ADD SCHEMATRANDATA ORCLPDB1.hr
 ```
 
-Registramos el Extract:
+Registramos y configuramos el Extract. Aquí le indicamos que capture los datos, genere un archivo local (Trail File) y le especificamos la tabla exacta que debe vigilar:
 ```GoldenGate
 REGISTER EXTRACT EEMP_ORG DATABASE CONTAINER (ORCLPDB1)
 ```
@@ -362,21 +362,21 @@ START EXTRACT EEMP_ORG
 #### Generar el Replicat en la base destino (`goldengate_odb2`):
 
 Conectamos a la PDB del destino:
-```
+```GoldenGate
 DBLOGIN USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
 ```
 
-Creamos una Tabla Checkpoint:
-```
+Creamos una Tabla Checkpoint. Esta tabla es crucial: permite que el Replicat guarde su progreso. Si el contenedor se apaga o falla, GoldenGate sabrá exactamente en qué transacción se quedó y evitará duplicar datos al reiniciar:
+```GoldenGate
 ADD CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_chkpt
 ```
 
-Registramos el Replicat
-```
+egistramos y configuramos el Replicat mapeando la tabla origen (`employees`) hacia nuestra tabla destino (`employees_clone`):
+```GoldenGate
 ADD REPLICAT REMP_DES, EXTTRAIL ./dirdat/origen/ex, CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_chkpt
 ```
 
-```
+```GoldenGate
 EDIT PARAMS REMP_DES
 ```
 
@@ -387,11 +387,11 @@ ASSUMETARGETDEFS
 MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
 ```
 
-```
+```GoldenGate
 START REPLICAT REMP_DES
 ```
 
-Finalmente agregamos registros en `goldengate_odb`
+Para comprobar que nuestra tubería de datos funciona, simularemos actividad. Finalmente agregamos registros en `goldengate_odb` (Origen):
 
 ```sql
 ALTER SESSION SET CONTAINER = ORCLPDB1;
@@ -413,7 +413,7 @@ UPDATE hr.employees SET salary = salary + 100 WHERE employee_id = 999;
 COMMIT;
 ```
 
-Y los revisamos en `golengate_odb2`:
+Y los revisamos en `goldengate_odb2` (Destino) para confirmar que los cambios viajaron exitosamente:
 
 ```sql
 ALTER SESSION SET CONTAINER = ORCLPDB1;
@@ -423,21 +423,23 @@ ALTER SESSION SET CONTAINER = ORCLPDB1;
 SELECT * FROM hr.employees_clone WHERE employee_id = 999;
 ```
 
-Ya que terminemos, borramos el registro de pruebas de la base origen:
+Ya que terminemos de validar, borramos el registro de pruebas de la base origen (esto también debería replicarse y borrar el registro en el destino):
 ```sql
 DELETE hr.employees WHERE employee_id = 999;
 COMMIT;
 ```
 
 
-#### Añadir Control de Errores al replicat:
+#### Añadir Control de Errores al Replicat (Archivos Discard)
+Por defecto, si GoldenGate encuentra un error (como intentar insertar una llave primaria que ya existe), el proceso Replicat se detendrá (Abend). Para evitar que la replicación entera se frene, configuraremos el manejo de errores.
 
-```
+Detenemos el proceso y editamos sus parámetros:
+```GoldenGate
 STOP REPLICAT REMP_DES
 EDIT PARAMS REMP_DES
 ```
 
-```
+```GoldenGate
 REPLICAT REMP_DES
 USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
 ASSUMETARGETDEFS
@@ -453,12 +455,13 @@ MAP ORCLPDB1.hr.employees, TARGET ORCLPDB1.hr.employees_clone;
 	- `Error 1: ORA-00001` (Unique constraint/Primary Key violation)
 	-  `Error 1403: ORA-01403` (No data found)
 
-```
+Iniciamos y revisamos el estatus:
+```GoldenGate
 START REPLICAT REMP_DES
 INFO REPLICAT REMP_DES
 ```
 
-Instertamos en `odb2` e insertamos:
+Para probarlo, simularemos una colisión. Insertamos un registro "intruso" manualmente directo en `goldengate_odb2` (Destino):
 ```SQL
 ALTER SESSION SET CONTAINER = ORCLPDB1;
 
@@ -468,7 +471,7 @@ VALUES (889, 'Intruso', 'Falso', 'FAKE', SYSDATE, 'IT_PROG');
 COMMIT;
 ```
 
-Posteriormente entramos a `odb` e insertamos el mismo dato
+Posteriormente, entramos a `goldengate_odb` (Origen) e insertamos el mismo dato. Esto causará un error ORA-00001 en GoldenGate al intentar replicarlo:
 ```sql
 INSERT INTO hr.employees (employee_id, first_name, last_name, email, hire_date, job_id) 
 VALUES (889, 'Intruso', 'Falso', 'FAKE', SYSDATE, 'IT_PROG');
@@ -477,17 +480,19 @@ COMMIT;
 ```
 
 Verificamos que el replicat siga vivo:
-```
+```GoldenGate
 INFO REPLICAT REMP_DES
 ```
 
-Y leemos el archivo directo desde el bash del contenedor (fuera de ggsci):
-```
+Y leemos el archivo de descartes directo desde el bash del contenedor (fuera de ggsci) para ver el registro que falló:
+```GoldenGate
 cat ./dirrpt/rephub.dsc
 ```
 
 #### Añadir Tabla de Errores
-En `obd2`:
+Leer archivos de texto para buscar errores no es práctico en producción. Una técnica más avanzada es enviar los registros problemáticos a una tabla de auditoría (Exceptions Table) que podemos consultar con SQL.
+
+Primero, creamos la tabla en `odb2` (Destino):
 
 ```sql
 ALTER SESSION SET CONTAINER = ORCLPDB1;
@@ -502,8 +507,11 @@ CREATE TABLE hr.employees_exceptions (
 En GoldenGate, editamos el Archivo de parámetros de la Replicación:
 
 ```Goldengate
-STOP REPLICAT REP_HUB
-EDIT PARAMS REP_HUB
+STOP REPLICAT REMP_DES
+```
+
+```GoldenGate
+EDIT PARAMS REMP_DES
 ```
 
 ```vim
@@ -528,22 +536,22 @@ COLMAP (
 - `EXCEPTIONSONLY`: GoldenGate solo usará este mapa si el Mapeo 1 falla (falla la inyección).
 - `@GETENV`: Extrae variables del entorno. `DBERRMSG` captura el texto exacto del error de Oracle.
 
+Iniciamos el proceso:
+
 ```GoldenGate
 START REPLICAT REP_HUB
 ```
 
-E insertamos datos nuevamente para generar una excepción como vimos antes.
-
-
+E insertamos datos nuevamente para generar una excepción como vimos antes. Ahora los errores quedarán en la tabla de excepciones.
 #### Integrar Macros
 Ahora integraremos una *[[Macros de GoldenGate|Macro]]* que se encargue del control de errores:
 
-Primero la generamos:
+Primero la generamos en un archivo independiente:
 ```GoldenGate
 SH vi ./dirprm/error_handler.mac
 ```
 
-Dentro de ella escribimos:
+Dentro de ella escribimos el comportamiento dinámico usando parámetros (`#origen`, `#destino`, `#errores`):
 ```vim
 MACRO #error_handler
 PARAMS (#origen, #destino, #errores)
@@ -562,8 +570,8 @@ END;
 ```
 - La guardamos y salimos
 
-Ahora editamos el *Replicat* `REMP_DES`:
-```
+Ahora editamos nuestro *Replicat* principal (`REMP_DES`) para que mande llamar (INCLUDE) a la macro, pasándole los nombres de nuestras tablas. Esto deja el archivo mucho más limpio:
+```GoldenGate
 REPLICAT REMP_DES
 USERID c##ggadmin@//goldengate_odb2:1521/ORCLPDB1, PASSWORD ggadmin123
 ASSUMETARGETDEFS
