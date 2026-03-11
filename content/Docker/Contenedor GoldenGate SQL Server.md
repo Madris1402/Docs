@@ -22,10 +22,10 @@ ogg_classic/
 # Usamos Oracle Linux 7 slim como base
 FROM oraclelinux:7-slim
 
-LABEL description="Oracle GoldenGate 19c for SQL Server - Fixed by SAIF"
+LABEL description="Oracle GoldenGate 19c for SQL Server"
 
 # --- Variables de Entorno ---
-# Ajustar OGG_HOME para que coincida con tu nuevo .rsp
+# Ajustar OGG_HOME para que coincida con el nuevo .rsp
 ENV OGG_HOME=/u01/app/ogg
 ENV STAGE_DIR=/tmp/install_ogg
 ENV OGG_ZIP_FILENAME="V982544-01.zip"
@@ -37,11 +37,18 @@ ENV PATH=$PATH:$OGG_HOME
 
 # --- Preparación del Sistema ---
 # 1. Instalamos dependencias y el Repositorio de Microsoft para el Driver SQL
-RUN yum install -y unzip libaio sysstat libnsl wget vim rlwrap epel-release unixODBC-devel && \
+RUN yum install -y unzip libaio sysstat libnsl wget vim unixODBC-devel && \
     curl https://packages.microsoft.com/config/rhel/7/prod.repo > /etc/yum.repos.d/mssql-release.repo && \
     ACCEPT_EULA=Y yum install -y msodbcsql17 mssql-tools && \
     yum clean all && \
     rm -rf /var/cache/yum
+
+# 1.1 Instalar rlwrap para tener historial en las lineas de comandos de ggsci, sql, etc.
+RUN yum install -y oracle-epel-release-el7
+RUN yum install -y rlwrap
+
+### Darle alias para que ggsci mande a llamar a rlwrap desde bash.
+RUN echo "alias ggsci='rlwrap ggsci'" >> /home/oracle/.bashrc
 
 # 2. Usuarios y Grupos (Simplificado para OGG SQL Server)
 RUN groupadd -g 54321 oinstall && \

@@ -15,8 +15,7 @@ Para crear este contenedor de [[Docker]] es necesario descargar *Oracle Golden G
 	`V983658-01(V983658-01.zip)	Oracle GoldenGate 19.1.0.0.4 for Oracle on Linux x86-64, 530.5 MB`
 6. Esto nos descargará un ejecutable, lo abrimos
 	- Nos pedirá la ubicación para descargar el archivo `.zip`, la especificamos dónde sea fácil de encontrar y hacemos click en *Next*.
-	[[Descargar OGG Classic|Tutorial paso a paso]]
-	
+> [[Descargar OGG Classic|Tutorial paso a paso]]
 ### Docker
 
 #### Docker Network
@@ -114,7 +113,14 @@ RUN yum install -y unzip libaio sysstat libnsl wget  vim && \
     yum clean all && \
     rm -rf /var/cache/yum
 
-# 1.1 Descarga manual del Instant Client (Bypass a los repositorios)
+# 1.1 Instalar rlwrap para tener historial en las lineas de comandos de ggsci, sql, etc.
+RUN yum install -y oracle-epel-release-el7
+RUN yum install -y rlwrap
+
+### Darle alias para que ggsci mande a llamar a rlwrap desde bash.
+RUN echo "alias ggsci='rlwrap ggsci'" >> /home/oracle/.bashrc
+
+# 1.2 Descarga manual del Instant Client (Bypass a los repositorios)
 RUN mkdir -p /opt/oracle && \
     cd /opt/oracle && \
     wget https://download.oracle.com/otn_software/linux/instantclient/1921000/instantclient-basic-linux.x64-19.21.0.0.0dbru.zip && \
