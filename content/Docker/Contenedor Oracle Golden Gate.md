@@ -4,6 +4,8 @@ tags:
 ---
 ### Requisitos
 #### Instalador de GoldenGate Classic
+> [[Descargar OGG Classic|Tutorial paso a paso]]
+
 Para crear este contenedor de [[Docker]] es necesario descargar *Oracle Golden Gate 19* desde [Oracle Software Delivery Cloud](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) (Para ingresar al portal se requiere de una cuenta de Oracle, si no la tienes, crea una)
 
 1. En la barra de búsqueda escribimos ***"GoldenGate"*** y buscamos la opción que diga:
@@ -15,7 +17,6 @@ Para crear este contenedor de [[Docker]] es necesario descargar *Oracle Golden G
 	`V983658-01(V983658-01.zip)	Oracle GoldenGate 19.1.0.0.4 for Oracle on Linux x86-64, 530.5 MB`
 6. Esto nos descargará un ejecutable, lo abrimos
 	- Nos pedirá la ubicación para descargar el archivo `.zip`, la especificamos dónde sea fácil de encontrar y hacemos click en *Next*.
-> [[Descargar OGG Classic|Tutorial paso a paso]]
 ### Docker
 
 #### Docker Network

@@ -43,7 +43,7 @@ El código 422 (Unprocessable Entity) significa "Entendí la petición, pero el 
 #### Query Parameters
 Suelen usarse para filtrar, ordenar o paginar los resultados. Son valores que se encuentran al final de la URL después de un signo de interrogación `?`.
 
-En FastAPI ==si declaras un parámetro que No esté incluido en la ruta del decorador, se asume que es un Query Parameter==.
+En FastAPI <mark style="background:#fdbfff">si declaras un parámetro que No esté incluido en la ruta del decorador, se asume que es un Query Parameter</mark>.
 
 ```python
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]

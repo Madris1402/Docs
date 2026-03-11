@@ -61,7 +61,7 @@ ALTER SESSION SET CONTAINER = ORCLPDB1;
 ```sql
 CREATE TABLESPACE goldengate DATAFILE '/opt/oracle/oradata/ORCL/ORCLPDB1_goldengate01.dbf' SIZE 100M AUTOEXTEND ON;
 ```
-- Volvemos a crear el tablespace ==Pero le cambiamos el nombre al archivo para evitar que sobreescriva el de CDB$ROOT==.
+- Volvemos a crear el tablespace <mark style="background:#fdbfff">Pero le cambiamos el nombre al archivo para evitar que sobreescriva el de CDB$ROOT</mark>.
 	
 ```sql
 ALTER SESSION SET CONTAINER = CDB$ROOT;

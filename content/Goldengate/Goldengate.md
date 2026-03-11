@@ -67,7 +67,7 @@ Existen dos formas principales de hacer esta carga inicial:
 
 1. **Con herramientas nativas de GoldenGate:** GoldenGate tiene procesos especiales (como un _Extract Initial Load_ y un _Replicat Initial Load_) que leen la tabla y mandan los datos. Sin embargo, para bases de datos muy grandes, esto puede ser lento.
    
-2. **Con herramientas externas:** En el mundo real, los administradores de bases de datos suelen usar utilidades ==nativas de la base de datos== porque son muchísimo más rápidas para mover Terabytes de información. En Oracle, por ejemplo, usamos una herramienta llamada **Data Pump** (exportar/importar) o restauramos un respaldo físico con **RMAN**.
+2. **Con herramientas externas:** En el mundo real, los administradores de bases de datos suelen usar utilidades <mark style="background:#fdbfff">nativas de la base de datos</mark> porque son muchísimo más rápidas para mover Terabytes de información. En Oracle, por ejemplo, usamos una herramienta llamada **Data Pump** (exportar/importar) o restauramos un respaldo físico con **RMAN**.
 
 Imagina que sacar esta "fotografía" inicial (el respaldo de Data Pump) de nuestra base de datos gigante y aplicarla en el destino tarda, digamos, **5 horas** y no podemos decirle a los clientes "cerraremos el sistema 5 horas mientras copiamos los datos". El almacén de origen sigue abierto, creando y actualizando registros minuto a minuto mientras nosotros hacemos la copia.
 
@@ -80,7 +80,7 @@ Para que todo encaje sin duplicar datos, utilizamos la **Instanciación basada e
 1. **Encendemos el Extract:** Comienza a atrapar cambios y a llenar _Trail Files_.
 2. **Tomamos la "foto" (Respaldo):** Al iniciar el respaldo que tardará 5 horas, la base de datos nos da un número de ticket exacto llamado **SCN** (System Change Number). Piensa en el SCN como una marca de tiempo milimétrica que dice: _"Esta foto contiene los datos exactamente hasta este instante"_.
 3. **Restauramos la foto:** Llevamos esa copia inmensa al servidor destino y la instalamos. El almacén destino ahora está lleno, pero tiene 5 horas de retraso.
-4. **Encendemos el Replicat con una condición:** Le decimos al _Replicat_: "Aquí están los Trail Files que el Extract juntó durante las últimas 5 horas. ==Pero comienza a aplicar los cambios únicamente a partir del SCN de nuestra foto==".
+4. **Encendemos el Replicat con una condición:** Le decimos al _Replicat_: "Aquí están los Trail Files que el Extract juntó durante las últimas 5 horas. <mark style="background:#fdbfff">Pero comienza a aplicar los cambios únicamente a partir del SCN de nuestra foto</mark>".
 
 De esta forma, el _Replicat_ ignora cualquier transacción que ya viniera incluida en el respaldo inicial y solo aplica los cambios nuevos. Así logramos una sincronización perfecta con **cero tiempo de inactividad**
 

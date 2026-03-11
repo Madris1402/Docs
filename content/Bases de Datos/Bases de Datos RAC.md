@@ -2,7 +2,7 @@
 tags:
   - DB
 ---
-Las bases de datos RAC cuentan con múltiples instancias ***clusterizadas*** de sistemas de gestión de bases de datos que están conectadas al un sistema de ***almacenamiento compartido***. Permitiendo así ==alta disponibiliad y escalabilidad==.
+Las bases de datos RAC cuentan con múltiples instancias ***clusterizadas*** de sistemas de gestión de bases de datos que están conectadas al un sistema de ***almacenamiento compartido***. Permitiendo así alta <mark style="background:#fdbfff">disponibiliad y escalabilidad</mark>.
 
 A diferencia de una base de datos tradicional que se satura cuan
 do recibe demasiadas peticiones simultaneas.
@@ -12,7 +12,7 @@ Todos los nodos tienen acceso a los mismos datos, si el nodo A escribe un dato, 
 
 Para evitar que se sobrescriban los datos, se necesita de un coordinador.
 ### Cache Fusion
-Si el nodo B requiere de un dato que está manipulando el nodo A, el nodo A se lo pasa directamente usando una red privada o ***interconnect*** así nunca se toca el disco de almacenamiento y se hace una ==transferencia de memoria a memoria==.
+Si el nodo B requiere de un dato que está manipulando el nodo A, el nodo A se lo pasa directamente usando una red privada o ***interconnect*** así nunca se toca el disco de almacenamiento y se hace una <mark style="background:#fdbfff">transferencia de memoria a memoria</mark>.
 
 La red o interconnect es crucial ya que sin ella el sistema de clusters no se puede sincronizar, si la red es lenta o falla pueden pasar estos casos:
 
@@ -20,7 +20,7 @@ La red o interconnect es crucial ya que sin ella el sistema de clusters no se pu
 	Los servidores tienen que esperar a que los datos lleguen. En Oracle existen eventos `gc` (Global Cache) que indican que el nodo está esperando la respuesta de otro nodo.
     
 2. **Eviction (Expulsión del Nodo):** 
-	Si la red es tan lenta que los nodos dejan de escucharse, entra un sistema de protección ==para evitar la corrupción de los datos que reinicia el servidor o apaga un nodo a la fuerza==. A esto lo llamamos protección contra ***Split Brain*** o ***Cerebro Dividido*** De esta manera ==evitamos que varios nodos crean que están operando solos y no escriban en el mismo espacio al mismo tiempo==, lo que corrompería todo el sistema.
+	Si la red es tan lenta que los nodos dejan de escucharse, entra un sistema de protección <mark style="background:#fdbfff">para evitar la corrupción de los datos que reinicia el servidor o apaga un nodo a la fuerza</mark>. A esto lo llamamos protección contra ***Split Brain*** o ***Cerebro Dividido*** De esta manera <mark style="background:#fdbfff">evitamos que varios nodos crean que están operando solos y no escriban en el mismo espacio al mismo tiempo</mark>, lo que corrompería todo el sistema.
 
 ### Global Resource Directory (GRD)
 El ***GRD*** es un mapa con la ubicación de los datos, este se distribuye a cada nodo, por ejemplo, el nodo A se hace cargo de la parte del mapa que indica quién tiene los datos que corresponden a Clientes y el nodo B se encarga de la parte del mapa que indica quien tiene los datos de Facturas.

@@ -74,6 +74,8 @@ Ahora que está configurado, necesitamos encender el motor.
 Espera unos minutos. Si regresas a la página de **Anypoint Runtime Manager**, verás que el indicador de estado de tu servidor cambiará de "*Created*" a **"*Running*" (Verde)**.
 
 ### Desplegar MuleApp 
+> [[Exportar MuleApp a JAR|Tutorial Paso a Paso]]
+
 Ahora que el canal de comunicación está abierto, puedes desplegar aplicaciones desde la nube hacia tu servidor local.
 
 1. **Prepara tu App:** En Anypoint Studio, haz clic derecho en tu proyecto -> **Export** -> **Anypoint Studio Project to Mule Deployable Archive**. Esto genera un archivo `.jar`.
@@ -89,7 +91,6 @@ Ahora que el canal de comunicación está abierto, puedes desplegar aplicaciones
 4. En **Deployment Target**, cambia la opción de "CloudHub" a **"Hybrid"** o selecciona directamente el nombre de tu servidor (`testHybrid`).
 5. Sube tu archivo `.jar` (generado en Anypoint Studio) y dale a **Deploy**.
 	- Repetir  los pasos 2 a 5 con cada una de las APIs (`gsapi-system-api` y `gsapi-places-api`)
-> [[Exportar MuleApp a JAR|Tutorial Paso a Paso]]
 #### Resumen de la Arquitectura
 
 | Componente        | Ubicación          | Función                                                                   |
