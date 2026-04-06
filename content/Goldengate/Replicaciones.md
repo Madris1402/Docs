@@ -255,7 +255,7 @@ DBLOGIN USERID c##ggadmin@//goldengate_odb:1521/ORCLPDB1, PASSWORD ggadmin123
 ```
 
 Posteriormente Crearemos una Tabla *Checkpoint* para indicar al Replicat en dónde se quedó si es que ocurre un reinicio o desconexión.
-
+ADD
 ```GoldenGate
 ADD CHECKPOINTTABLE ORCLPDB1.c##ggadmin.gg_checkpoint
 ```

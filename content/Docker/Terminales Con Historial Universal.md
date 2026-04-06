@@ -33,7 +33,7 @@ echo "alias rman='rlwrap rman'" >> /home/oracle/.bashrc
 - En este ejemplo usamos los alias para un contenedor con sqlplus, pero solo es indicar el comando que se va a usar, qué manda a llamar y en qué ruta lo va a ejecutar.
 	
 ```bash
-echo "alias ggsci='rlwrap ggsci'" >> /home/oracle/.bashrc
+echo "alias ggsci='rlwrap rlwrap /u04/app/oracle/product/gg/19.1_ora11g/ggsci'" >> /home/oracle/.bashrc
 ```
 - Este otro ejemplo para agregar el alias a un contenedor con *GoldenGate*.
 

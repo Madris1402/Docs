@@ -4,7 +4,7 @@ tags:
 ---
 Es una herramienta oficial de [[Docker]] que <mark style="background:#fdbfff">permite definir y ejecutar aplicaciones de múltiples contenedores</mark>. Se declara toda la infraestructura en la terminal para cada contenedor en un archivo `yaml` y luego se levanta todo con un solo comando.
 
-### Flujo de Trabajo
+### Flujo de Trabajo 
 Trabajar con Docker Compose generalmente se resume en tres pasos:
 
 1. **Definir el entorno de la app:** Se crea un `Dockerfile` para las aplicaciones personalizadas (por ejemplo, tu código en Python o Java) para que puedan ser reproducidas en cualquier lugar.
